@@ -162,15 +162,25 @@ def create_features(df):
 
 
 # ------------------------------------------------------------
-# Generate 30-day forecast
+# Generate Power Demand Forecast
 # ------------------------------------------------------------
 
-st.subheader("30-Day Power Demand Forecast")
+st.subheader("🔮 Generate Power Demand Forecast")
 
-if st.button("Generate Forecast"):
+forecast_days = st.selectbox(
+    "Select forecast period",
+    [7, 15, 30],
+    index=2
+)
+
+st.write(
+    f"Generate an hourly forecast for the next {forecast_days} days."
+)
+
+if st.button("🚀 Generate Forecast", type="primary"):
     history = data.copy()
     future_predictions = []
-    forecast_hours = 30 * 24
+    forecast_hours = forecast_days * 24
 
     progress = st.progress(0)
 
@@ -193,7 +203,6 @@ if st.button("Generate Forecast"):
         X_future = temp[features].iloc[[-1]]
 
         prediction = float(model.predict(X_future)[0])
-
         new_row[target] = prediction
 
         history = pd.concat(
@@ -213,7 +222,9 @@ if st.button("Generate Forecast"):
 
     forecast_df = pd.DataFrame(future_predictions)
 
-    st.success("30-day forecast generated successfully.")
+    st.success(
+        f"{forecast_days}-day forecast generated successfully!"
+    )
 
     col1, col2, col3 = st.columns(3)
 
@@ -230,19 +241,23 @@ if st.button("Generate Forecast"):
         f"{forecast_df['Forecast_MW'].min():,.2f} MW"
     )
 
-    st.subheader("Forecast Trend")
+    st.subheader("📉 Forecast Trend")
     st.line_chart(
         forecast_df.set_index("Datetime")["Forecast_MW"]
     )
 
-    st.subheader("Forecast Results")
-    st.dataframe(forecast_df, use_container_width=True)
+    st.subheader("📋 Forecast Results")
+    st.dataframe(
+        forecast_df,
+        use_container_width=True,
+        hide_index=True
+    )
 
     csv = forecast_df.to_csv(index=False)
 
     st.download_button(
-        label="Download Forecast CSV",
+        label="⬇️ Download Forecast CSV",
         data=csv,
-        file_name="30_day_power_demand_forecast.csv",
+        file_name=f"{forecast_days}_day_power_demand_forecast.csv",
         mime="text/csv"
     )
